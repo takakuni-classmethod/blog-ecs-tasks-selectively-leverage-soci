@@ -13,18 +13,6 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    // NAT Instance
-    const keyPair = new ec2.KeyPair(this, 'keypair', {
-      keyPairName: 'soci-update-keypair',
-      type: ec2.KeyPairType.RSA,
-    });
-
-    const natGatewayProvider = ec2.NatProvider.instance({
-      instanceType: new ec2.InstanceType('t3.medium'),
-      keyPair,
-    });
-
     // VPC
     const vpc = new ec2.Vpc(this, 'vpc', {
       ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
@@ -45,7 +33,6 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       vpcName: 'soci-update-vpc',
       enableDnsHostnames: true,
       enableDnsSupport: true,
-      natGatewayProvider,
       natGatewaySubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
 
