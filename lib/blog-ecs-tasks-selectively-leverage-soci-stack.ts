@@ -151,7 +151,7 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       logging: ecs.LogDrivers.firelens({}),
       linuxParameters: new ecs.LinuxParameters(this, 'nginxLinuxParameters', {
         initProcessEnabled: true,
-      })
+      }),
     });
 
     taskDefinition.addFirelensLogRouter('firelensContainer', {
@@ -173,7 +173,7 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       readonlyRootFilesystem: true,
       linuxParameters: new ecs.LinuxParameters(this, 'nginxLinuxParameters', {
         initProcessEnabled: true,
-      })
+      }),
     });
 
     // ALB
