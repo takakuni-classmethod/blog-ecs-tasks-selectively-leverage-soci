@@ -6,7 +6,7 @@ import { BlogEcsTasksSelectivelyLeverageSociStack } from '../lib/blog-ecs-tasks-
 const app = new cdk.App();
 new BlogEcsTasksSelectivelyLeverageSociStack(app, 'BlogEcsTasksSelectivelyLeverageSociStack', {
   env: {
-    account: process.env.AWS_ACCOUNT_ID,
-    region: process.env.AWS_DEFAULT_REGION
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION
   }
 });

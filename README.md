@@ -18,7 +18,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 CloudShell からの実行
 
 ```bash
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-AWS_DEFAULT_REGION=ap-northeast-1
+CDK_DEFAULT_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+CDK_DEFAULT_REGION=ap-northeast-1
 npm install
 ```
