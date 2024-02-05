@@ -170,7 +170,6 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
         streamPrefix: 'firelens',
         logGroup: firelensLogGroup
       }),
-      readonlyRootFilesystem: true,
       linuxParameters: new ecs.LinuxParameters(this, 'firelensParameters', {
         initProcessEnabled: true,
       }),
