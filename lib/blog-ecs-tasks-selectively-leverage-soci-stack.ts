@@ -36,6 +36,49 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       natGatewaySubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
 
+    // ALB
+    const albSg = new ec2.SecurityGroup(this, 'albSg', {
+      vpc,
+      securityGroupName: 'soci-update-alb-sg',
+      allowAllOutbound: true,
+    });
+    albSg.addIngressRule(ec2.Peer.anyIpv4(),ec2.Port.tcp(80),);
+
+    const tg = new elbv2.ApplicationTargetGroup(this, 'tg', {
+      targetGroupName: 'soci-update-tg',
+      vpc,
+      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targetType: elbv2.TargetType.IP,
+      deregistrationDelay: cdk.Duration.seconds(60),
+      healthCheck: {
+        path: '/',
+        port: 'traffic-port',
+        protocol: elbv2.Protocol.HTTP,
+      },
+    });
+
+    const alb = new elbv2.ApplicationLoadBalancer(this, 'alb', {
+      vpc,
+      internetFacing: true,
+      loadBalancerName: 'soci-update-alb',
+      dropInvalidHeaderFields: true,
+      deletionProtection: false,
+      http2Enabled: true,
+      idleTimeout: cdk.Duration.seconds(60),
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC
+      },
+      securityGroup: albSg,
+    });
+    
+    alb.addListener('albListener', {
+      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      defaultAction: elbv2.ListenerAction.forward([tg]),
+      open: true,
+    });
+
     // ECR (Nginx)
     const nginxRepo = new ecr.Repository(this, 'nginxRepo', {
       repositoryName: 'nginx-repo',
@@ -72,12 +115,12 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       dest: new ecrdeploy.DockerImageName(`${firelensRepo.repositoryUri}:latest`),
     });
 
+    // Task Role
     const taskRole = new iam.Role(this, 'taskRole', {
       roleName: 'soci-update-task-role',
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
-
-    // Task Role
+    
     const taskPolicy = new iam.ManagedPolicy(this, 'taskPolicy', {
       statements: [
         new iam.PolicyStatement({
@@ -175,48 +218,43 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       }),
     });
 
-    // ALB
-    const albSg = new ec2.SecurityGroup(this, 'albSg', {
-      vpc,
-      securityGroupName: 'soci-update-alb-sg',
-      allowAllOutbound: true,
-    });
-    albSg.addIngressRule(ec2.Peer.anyIpv4(),ec2.Port.tcp(80),);
+    // Am I lazy? を有効にする場合はコメントを外す
+    // const amilazyRepo = new ecr.Repository(this, 'amilazyRepo', {
+    //   repositoryName: 'amilazy-repo',
+    //   imageScanOnPush: true,
+    //   emptyOnDelete: true,
+    //   removalPolicy: cdk.RemovalPolicy.DESTROY,
+    // });
 
-    const tg = new elbv2.ApplicationTargetGroup(this, 'tg', {
-      targetGroupName: 'soci-update-tg',
-      vpc,
-      port: 80,
-      protocol: elbv2.ApplicationProtocol.HTTP,
-      targetType: elbv2.TargetType.IP,
-      deregistrationDelay: cdk.Duration.seconds(60),
-      healthCheck: {
-        path: '/',
-        port: 'traffic-port',
-        protocol: elbv2.Protocol.HTTP,
-      },
-    });
+    // const amilazyAsset = new DockerImageAsset(this, 'amilazyDockerImage', {
+    //   directory: path.join(__dirname, "..", "app/am-i-lazy"),
+    //   platform: Platform.LINUX_ARM64
+    // });
 
-    const alb = new elbv2.ApplicationLoadBalancer(this, 'alb', {
-      vpc,
-      internetFacing: true,
-      loadBalancerName: 'soci-update-alb',
-      dropInvalidHeaderFields: true,
-      deletionProtection: false,
-      http2Enabled: true,
-      idleTimeout: cdk.Duration.seconds(60),
-      vpcSubnets: {
-        subnetType: ec2.SubnetType.PUBLIC
-      },
-      securityGroup: albSg,
-    });
-    
-    alb.addListener('albListener', {
-      port: 80,
-      protocol: elbv2.ApplicationProtocol.HTTP,
-      defaultAction: elbv2.ListenerAction.forward([tg]),
-      open: true,
-    });
+    // new ecrdeploy.ECRDeployment(this, "amilazyDeployment", {
+    //   src: new ecrdeploy.DockerImageName(amilazyAsset.imageUri),
+    //   dest: new ecrdeploy.DockerImageName(`${amilazyRepo.repositoryUri}:latest`),
+    // });
+
+    // const amilazyLogGroup = new logs.LogGroup(this, 'amilazyLogGroup', {
+    //   logGroupName: 'soci-update-amilazy-log-group',
+    //   retention: logs.RetentionDays.ONE_MONTH,
+    //   removalPolicy: cdk.RemovalPolicy.DESTROY
+    // } );
+
+    // taskDefinition.addContainer('amilazyContainer', {
+    //   essential: false,
+    //   image: ecs.ContainerImage.fromEcrRepository(amilazyRepo),
+    //   containerName: 'amilazyContainer',
+    //   logging: ecs.LogDrivers.awsLogs({
+    //     streamPrefix: 'amilazy',
+    //     logGroup: amilazyLogGroup,
+    //   }),
+    //   // logging: ecs.LogDrivers.firelens({}),
+    //   linuxParameters: new ecs.LinuxParameters(this, 'amilazyLinuxParameters', {
+    //     initProcessEnabled: true,
+    //   }),
+    // });
 
     // ECS
     const ecsSg = new ec2.SecurityGroup(this, 'ecsSg', {
