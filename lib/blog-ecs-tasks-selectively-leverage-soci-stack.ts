@@ -89,7 +89,7 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
 
     const nginxAsset = new DockerImageAsset(this, 'nginxDockerImage', {
       directory: path.join(__dirname, "..", "app/nginx"),
-      platform: Platform.LINUX_ARM64
+      platform: Platform.LINUX_AMD64
     });
 
     new ecrdeploy.ECRDeployment(this, "nginxDeployment", {
@@ -107,7 +107,7 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
 
     const firelensAsset = new DockerImageAsset(this, 'firelensDockerImage', {
       directory: path.join(__dirname, "..", "app/firelens"),
-      platform: Platform.LINUX_ARM64
+      platform: Platform.LINUX_AMD64
     });
 
     new ecrdeploy.ECRDeployment(this, "firelensDeployment", {
@@ -176,7 +176,7 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
       memoryLimitMiB: 512,
       runtimePlatform: {
         operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
-        cpuArchitecture: ecs.CpuArchitecture.ARM64,
+        cpuArchitecture: ecs.CpuArchitecture.X86_64,
       },
       taskRole,
       executionRole,
@@ -228,7 +228,7 @@ export class BlogEcsTasksSelectivelyLeverageSociStack extends cdk.Stack {
 
     // const amilazyAsset = new DockerImageAsset(this, 'amilazyDockerImage', {
     //   directory: path.join(__dirname, "..", "app/am-i-lazy"),
-    //   platform: Platform.LINUX_ARM64
+    //   platform: Platform.LINUX_AMD64
     // });
 
     // new ecrdeploy.ECRDeployment(this, "amilazyDeployment", {
